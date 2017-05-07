@@ -1,3 +1,4 @@
+"use-strict"
 import React, { Component } from 'react';
 import {
     AppRegistry,
@@ -18,7 +19,7 @@ export default class App extends Component {
         this.urls = [
             {
                 name: 'Shoutcast stream',
-                url: 'http://192.168.43.19:5000/stream.mp3'
+                url: 'http://a1804.phobos.apple.com/us/r1000/064/Music/v4/9b/b3/c7/9bb3c7dc-a06f-f18c-3e41-2ce1e36f73b4/mzaf_7432104896053262141.aac.m4a'
             }
         ];
 
@@ -31,21 +32,22 @@ export default class App extends Component {
         this.socket.on('order', this.exec_order);
     }
 
-
+	
     exec_order(data){
         console.log(data);
         if (data.value.length >= 10){
             let url = `http://192.168.43.19:5000/music/${data.value}.mp3`
+			console.log(">>>>>>>>>>>>>><",url);
             ReactNativeAudioStreaming.play(url , {showIniOSMediaCenter: true, showInAndroidNotifications: true});
-            ReactNativeAudioStreaming.pause();
         }
 
         if ( data.value == "1"){
             ReactNativeAudioStreaming.resume();
         }
 
-        if( data.value == "2")
-            ReactNativeAudioStreaming.pause();
+        if( data.value == "2"){
+			ReactNativeAudioStreaming.pause();
+		}
     }
 
     render() {
