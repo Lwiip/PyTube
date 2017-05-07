@@ -6,7 +6,9 @@ import urllib.parse;
 import urllib.request
 import pafy;
 from omxplayer import OMXPlayer;
+from pydub import AudioSegment
 
+addr_serv = "http://192.168.43.19:5000"
 dir_path = os.path.dirname(os.path.realpath(__file__));
 
 class Video(object):
@@ -40,13 +42,23 @@ class Video(object):
 	def create(self):
 		videoToPlay = pafy.new("https://www.youtube.com/watch?v=" + self.info["encrypted_id"]);
 
-		bestaudio = videoToPlay.getbestaudio();
+		bestaudio = videoToPlay.getbestaudio(preftype="m4a", ftypestrict=True);
+		file_name =  dir_path + "/music/" + self.id + ".m4a";
 		try :
-		   bestaudio.download();
+		   bestaudio.download(file_name);
 		except:
 		   pass
 		self.player.quit()
-		self.player = OMXPlayer(dir_path + "/" + bestaudio.filename, pause=True);
+		self.player = OMXPlayer(file_name, pause=True);
+		
+		AudioSegment.from_file(file_name).export(dir_path + "/music/" + self.id + ".mp3", format="mp3");
+		
+		r = requests.post(addr_serv + "/serv", data=str(self.id));
+		if r.status_code != 200:
+			print(r);
+			print("error post to 2nd server");
+		else:
+			print("postb 2nd ok");
 	
 	def seek(self, timeValue):
 		self.player.set_position(timeValue);
@@ -57,12 +69,27 @@ class Video(object):
 		self.state = "1";
 
 		self.player.play();
+		
+		
+		r = requests.post(addr_serv + "/serv", data=self.state);
+		if r.status_code != 200:
+			print(r);
+			print("error post to 2nd server");
+		else:
+			print("postb 2nd ok");
 
 	def pause(self):
 		self.getCurrentTime();
 		self.state = "2";
 
 		self.player.pause();
+		
+		r = requests.post(addr_serv + "/serv", data=self.state);
+		if r.status_code != 200:
+			print(r);
+			print("error post to 2nd server");
+		else:
+			print("postb 2nd ok");
 		
 	def stop(self): # useless for the moment but mayby later...
 		self.state = "0";
@@ -166,6 +193,13 @@ class YtServer(object):
 			cmd = item[1];
 			self.genericCmd(index, cmd[0], cmd[1:]);
 			
+			# r = requests.post(addr_serv + "/serv", data=str(item));
+			# if r.status_code != 200:
+				# print(r);
+				# print("error post to 2nd server");
+			# else:
+				# print("postb 2nd ok");
+			
 			#moche de faire ça la, mais pour le moment, oui copier coller de next pas beau
 			if cmd[0] == "noop" and self.video.state == "1" and not self.video.player.is_playing():
 				if self.list.currentIndex + 1 < len(self.list.videos):
@@ -200,7 +234,7 @@ class YtServer(object):
 			return;
 
 		self.currentCmdIndex = index;
-
+		
 		if cmd == "noop":
 			print("noop cmd");
 		elif cmd == "S":
