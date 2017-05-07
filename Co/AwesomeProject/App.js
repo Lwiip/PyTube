@@ -9,6 +9,7 @@ import {
     TouchableOpacity
 } from 'react-native';
 import { ReactNativeAudioStreaming, Player } from 'react-native-audio-streaming';
+import SocketIOClient from 'socket.io-client';
 
 export default class App extends Component {
     constructor() {
@@ -17,19 +18,7 @@ export default class App extends Component {
         this.urls = [
             {
                 name: 'Shoutcast stream',
-                url: 'http://lacavewebradio.chickenkiller.com:8000/stream.mp3'
-            },
-            {
-                name: 'M4A stream',
-                url: 'http://web.ist.utl.pt/antonio.afonso/www.aadsm.net/libraries/id3/music/02_Viandanze.m4a'
-            },
-            {
-                name: 'MP3 stream with ID3 meta data',
-                url: 'http://web.ist.utl.pt/antonio.afonso/www.aadsm.net/libraries/id3/music/Bruno_Walter_-_01_-_Beethoven_Symphony_No_1_Menuetto.mp3'
-            },
-            {
-                name: 'MP3 stream',
-                url: 'http://www.stephaniequinn.com/Music/Canon.mp3'
+                url: 'http://192.168.43.19:5000/stream.mp3'
             }
         ];
 
@@ -37,6 +26,26 @@ export default class App extends Component {
             dataSource: this.ds.cloneWithRows(this.urls),
             selectedSource: this.urls[0].url
         };
+
+        this.socket = SocketIOClient('http://192.168.43.19:5000');
+        this.socket.on('order', this.exec_order);
+    }
+
+
+    exec_order(data){
+        console.log(data);
+        if (data.value.length >= 10){
+            let url = `http://192.168.43.19:5000/music/${data.value}.mp3`
+            ReactNativeAudioStreaming.play(url , {showIniOSMediaCenter: true, showInAndroidNotifications: true});
+            ReactNativeAudioStreaming.pause();
+        }
+
+        if ( data.value == "1"){
+            ReactNativeAudioStreaming.resume();
+        }
+
+        if( data.value == "2")
+            ReactNativeAudioStreaming.pause();
     }
 
     render() {
@@ -68,6 +77,8 @@ export default class App extends Component {
         );
     }
 }
+
+
 
 const styles = StyleSheet.create({
     container: {

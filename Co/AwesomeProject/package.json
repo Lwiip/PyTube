@@ -10,7 +10,7 @@
     "react": "16.0.0-alpha.6",
     "react-native": "0.44.0",
     "react-native-audio-streaming": "^2.3.2",
-    "socket.io-client": "^1.7.3"
+    "socket.io-client": "^1.7.4"
   },
   "devDependencies": {
     "babel-jest": "20.0.0",
